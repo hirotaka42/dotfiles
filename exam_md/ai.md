@@ -16,30 +16,8 @@ assam --version
 ## 設定 
 
 ### 共有Bedrockを使用する際
-~/.aws/config に以下の内容を設定してください
 
-```
-[profile sample_profile]
-app_id_uri                     = https://signin.aws.amazon.com/saml
-azure_tenant_id                = ※YOUR_UUID_HERE
-default_session_duration_hours = 6
-chrome_user_data_dir           = $HOME/.config/assam/chrome-user-data
-region = ※YOUR_REGION_HERE
-```
-※profile名は何でもいいです
-
-### ワンライナーで実施するには？
-
-```
-mkdir -p ~/.aws && cat <<'EOF' >> ~/.aws/config
-[profile sample_profile]
-app_id_uri                     = https://signin.aws.amazon.com/saml
-azure_tenant_id                = ※YOUR_UUID_HEREを入力
-default_session_duration_hours = 6
-chrome_user_data_dir           = $HOME/.config/assam/chrome-user-data
-region                         = ※YOUR_REGION_HEREを入力
-EOF
-```
+👉[Bedrock.md](./Bedrock.md) を参考
 
 ### ログイン
 
@@ -74,6 +52,13 @@ aws --profile sample_profile s3 ls
 ※一度の実行でOK
 
 ```
-echo "export AWS_PROFILE=sample_profile" >> ~/.zshrc
+cat <<'EOF' >> ~/.zshrc
+
+# claude code: Bedrock
+export AWS_PROFILE=sample_profile
+EOF
+
 source ~/.zshrc
 ```
+
+### 
