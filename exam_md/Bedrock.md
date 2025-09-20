@@ -28,6 +28,7 @@ export ANTHROPIC_MODEL='us.anthropic.claude-sonnet-4-20250514-v1:0'
 おすすめ: 設定ファイルでの簡単設定 (~/.claude/settings.json)#
 環境変数を毎回設定する代わりに、以下の設定を ~/.claude/settings.json に保存しておくと便利です。
 
+```
 {
   "model": "us.anthropic.claude-sonnet-4-20250514-v1:0",
   "env": {
@@ -36,6 +37,8 @@ export ANTHROPIC_MODEL='us.anthropic.claude-sonnet-4-20250514-v1:0'
     "AWS_REGION": "us-east-1"
   }
 }
+```
+
 claude を起動し、 /model から使いたいLLMモデルを選択できます。
 
 Claude Code Model Selection
