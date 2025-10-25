@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IME辞書管理ツール</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219a52;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .content-area {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .category-item {
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .category-item:hover {
+            background: #ecf0f1;
+        }
+
+        .category-item.active {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+
+        .category-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .category-description {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .word-list {
+            margin-top: 20px;
+        }
+
+        .word-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background: #fafafa;
+        }
+
+        .word-item:hover {
+            background: #f0f8ff;
+        }
+
+        .word-reading {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .word-text {
+            font-size: 16px;
+        }
+
+        .word-meta {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            height: 60px;
+            resize: vertical;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .export-section {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .word-item {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 IME辞書管理ツール</h1>
+            <p>JSONファイルを読み込んで辞書データを編集・管理できます</p>
+        </div>
+
+        <div class="controls">
+            <input type="file" id="fileInput" accept=".json" style="display: none;">
+            <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
+                📁 JSONファイルを読み込み
+            </button>
+            <button class="btn-success" onclick="saveJSON()">💾 JSONファイルを保存</button>
+            <button class="btn-primary" onclick="openAddCategoryModal()">📂 カテゴリ追加</button>
+            <button class="btn-primary" onclick="openAddWordModal()">➕ 単語追加</button>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalCategories">0</div>
+                <div class="stat-label">カテゴリ数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalWords">0</div>
+                <div class="stat-label">総単語数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeWords">0</div>
+                <div class="stat-label">有効単語数</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <h3>📁 カテゴリ一覧</h3>
+                <div id="categoryList"></div>
+            </div>
+
+            <div class="content-area">
+                <div id="wordContent">
+                    <h3>単語一覧</h3>
+                    <input type="text" id="searchBox" class="search-box" placeholder="🔍 単語を検索..." onkeyup="filterWords()">
+                    <div id="wordList" class="word-list"></div>
+                </div>
+
+                <div class="export-section">
+                    <h4>📤 エクスポート</h4>
+                    <p>エクスポートするカテゴリを選択してください（複数選択可）</p>
+                    <div id="exportCategorySelection" style="margin-bottom: 15px; padding: 10px; background: white; border-radius: 5px; max-height: 200px; overflow-y: auto;">
+                        <!-- カテゴリ選択チェックボックスがここに表示されます -->
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <button class="btn-primary" onclick="selectAllCategories()">全て選択</button>
+                        <button class="btn-primary" onclick="deselectAllCategories()">全て解除</button>
+                    </div>
+                    <div class="export-buttons">
+                        <button class="btn-success" onclick="exportToCSV()">CSV形式で出力</button>
+                        <button class="btn-success" onclick="exportToTXT()">TXT形式で出力</button>
+                        <button class="btn-success" onclick="exportToMacOS()">macOS用(.plist)で出力</button>
+                        <button class="btn-success" onclick="exportToWindows()">Windows形式で出力</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 単語追加・編集モーダル -->
+    <div id="wordModal" class="modal">
+        <div class="modal-content">
+            <h3 id="wordModalTitle">単語を追加</h3>
+            <form id="wordForm">
+                <div class="form-group">
+                    <label for="wordReading">読み *</label>
+                    <input type="text" id="wordReading" required>
+                </div>
+                <div class="form-group">
+                    <label for="wordText">単語 *</label>
+                    <input type="text" id="wordText" required>
+                </div>
+                <div class="form-group">
+                    <label for="wordPOS">品詞</label>
+                    <select id="wordPOS">
+                        <option value="名詞">名詞</option>
+                        <option value="動詞">動詞</option>
+                        <option value="形容詞">形容詞</option>
+                        <option value="副詞">副詞</option>
+                        <option value="人名">人名</option>
+                        <option value="地名">地名</option>
+                        <option value="固有名詞">固有名詞</option>
+                        <option value="短縮よみ">短縮よみ</option>
+                        <option value="記号">記号</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="wordDescription">説明</label>
+                    <textarea id="wordDescription" placeholder="この単語の説明や用途..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="wordTags">タグ（カンマ区切り）</label>
+                    <input type="text" id="wordTags" placeholder="例: 記号, 矢印">
+                </div>
+                <div class="form-group">
+                    <label for="wordCategory">カテゴリ</label>
+                    <select id="wordCategory"></select>
+                </div>
+                <div style="text-align: right; margin-top: 30px;">
+                    <button type="button" onclick="closeWordModal()" style="margin-right: 10px;">キャンセル</button>
+                    <button type="submit" class="btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- カテゴリ追加モーダル -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <h3>カテゴリを追加</h3>
+            <form id="categoryForm">
+                <div class="form-group">
+                    <label for="categoryName">カテゴリ名 *</label>
+                    <input type="text" id="categoryName" required>
+                </div>
+                <div class="form-group">
+                    <label for="categoryDescription">説明</label>
+                    <textarea id="categoryDescription" placeholder="このカテゴリの説明..."></textarea>
+                </div>
+                <div style="text-align: right; margin-top: 30px;">
+                    <button type="button" onclick="closeCategoryModal()" style="margin-right: 10px;">キャンセル</button>
+                    <button type="submit" class="btn-primary">追加</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+# 個人情報・機密情報
+tools/ime-dictionaries/data/personal/
+*.secret
+*.key
+*.pem
+
+# システム固有ファイル
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# エディタ・IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 一時ファイル
+*.tmp
+*.bak
+*.cache
+
+# ログファイル
+*.log
+
+# 変換出力ファイル（自動生成）
+tools/ime-dictionaries/tools/converter/output/
+*.generated.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+env/
+
+# Node.js（将来的に使用する可能性）
+node_modules/
+npm-debug.log*
+
+# macOS
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
