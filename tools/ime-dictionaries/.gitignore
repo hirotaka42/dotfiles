@@ -1,0 +1,30 @@
+# 個人情報・機密情報
+data/personal/
+*.secret
+*.key
+*.pem
+
+# テスト生成ファイル
+tests/__pycache__/
+tests/*.pyc
+tests/tmp*/
+tests/output/
+tests/.coverage
+tests/htmlcov/
+
+# ビルド・キャッシュ
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# エディタ・IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

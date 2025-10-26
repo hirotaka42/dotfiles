@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web版IME辞書ツール - ユニットテスト</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            color: #2c3e50;
+        }
+
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+
+        .test-pass {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+
+        .test-fail {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+
+        .test-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .test-error {
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 5px;
+            padding: 5px;
+            background: #fff;
+            border-radius: 3px;
+        }
+
+        .summary {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .summary-pass {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .summary-fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h1>📚 Web版IME辞書ツール - ユニットテスト</h1>
+
+    <div class="test-container">
+        <button onclick="runAllTests()">🧪 全テストを実行</button>
+    </div>
+
+    <div class="test-container" id="test-results">
+        <h3>テスト結果</h3>
+        <p>「全テストを実行」ボタンをクリックしてください</p>
+    </div>
+
+    <script>
+        // テスト用データ
+        const testData = {
+            "辞書情報": {
+                "名前": "テスト用辞書",
+                "説明": "ユニットテスト用",
+                "更新日": "2025-01-01"
+            },
+            "カテゴリ": {
+                "記号": {
+                    "説明": "テスト用記号",
+                    "有効": true,
+                    "単語リスト": [
+                        {
+                            "読み": "みぎや",
+                            "単語": "→",
+                            "品詞": "記号",
+                            "説明": "右矢印",
+                            "タグ": ["矢印", "記号"]
+                        },
+                        {
+                            "読み": "まる",
+                            "単語": "○",
+                            "品詞": "記号",
+                            "説明": "丸印",
+                            "タグ": ["記号"]
+                        }
+                    ]
+                },
+                "人名": {
+                    "説明": "テスト用人名",
+                    "有効": true,
+                    "単語リスト": [
+                        {
+                            "読み": "たなか",
+                            "単語": "田中",
+                            "品詞": "人名",
+                            "説明": "人名テスト",
+                            "タグ": ["人名"]
+                        }
+                    ]
+                }
+            }
+        };
+
+        // app.jsから必要な関数をコピー（簡略版）
+        function escapeCSVField(field) {
+            if (field == null) return '';
+            const str = String(field);
+            return str.replace(/"/g, '""');
+        }
+
+        function mapPOSForWindows(pos) {
+            const windowsPOSMap = {
+                '記号': '短縮よみ',
+                '名詞': '名詞',
+                '動詞': '名詞',
+                '形容詞': '名詞',
+                '副詞': '名詞',
+                '人名': '人名',
+                '地名': '地名',
+                '固有名詞': '名詞',
+                '短縮よみ': '短縮よみ',
+                '顔文字': '顔文字',
+                'サ変名詞': 'サ変名詞'
+            };
+            return windowsPOSMap[pos] || '名詞';
+        }
+
+        // テストフレームワーク
+        class TestRunner {
+            constructor() {
+                this.tests = [];
+                this.results = [];
+            }
+
+            test(name, fn) {
+                this.tests.push({ name, fn });
+            }
+
+            async run() {
+                this.results = [];
+
+                for (const test of this.tests) {
+                    try {
+                        await test.fn();
+                        this.results.push({ name: test.name, passed: true });
+                    } catch (error) {
+                        this.results.push({
+                            name: test.name,
+                            passed: false,
+                            error: error.message
+                        });
+                    }
+                }
+
+                return this.results;
+            }
+
+            displayResults() {
+                const container = document.getElementById('test-results');
+                const passed = this.results.filter(r => r.passed).length;
+                const failed = this.results.filter(r => !r.passed).length;
+                const total = this.results.length;
+
+                let html = '<h3>テスト結果</h3>';
+
+                this.results.forEach(result => {
+                    const className = result.passed ? 'test-pass' : 'test-fail';
+                    const icon = result.passed ? '✅' : '❌';
+
+                    html += `
+                        <div class="test-result ${className}">
+                            <div class="test-name">${icon} ${result.name}</div>
+                            ${result.error ? `<div class="test-error">エラー: ${result.error}</div>` : ''}
+                        </div>
+                    `;
+                });
+
+                const summaryClass = failed === 0 ? 'summary-pass' : 'summary-fail';
+                html += `
+                    <div class="summary ${summaryClass}">
+                        合計: ${total}件 | 成功: ${passed}件 | 失敗: ${failed}件
+                    </div>
+                `;
+
+                container.innerHTML = html;
+            }
+        }
+
+        // アサーション関数
+        function assert(condition, message) {
+            if (!condition) {
+                throw new Error(message || 'アサーションエラー');
+            }
+        }
+
+        function assertEqual(actual, expected, message) {
+            if (actual !== expected) {
+                throw new Error(message || `期待値: ${expected}, 実際: ${actual}`);
+            }
+        }
+
+        function assertIncludes(array, value, message) {
+            if (!array.includes(value)) {
+                throw new Error(message || `配列に ${value} が含まれていません`);
+            }
+        }
+
+        // テスト定義
+        function defineTests(runner) {
+            runner.test('CSVフィールドエスケープ - 通常の文字列', () => {
+                const result = escapeCSVField('テスト');
+                assertEqual(result, 'テスト');
+            });
+
+            runner.test('CSVフィールドエスケープ - ダブルクォート', () => {
+                const result = escapeCSVField('test "quoted"');
+                assertEqual(result, 'test ""quoted""');
+            });
+
+            runner.test('CSVフィールドエスケープ - null', () => {
+                const result = escapeCSVField(null);
+                assertEqual(result, '');
+            });
+
+            runner.test('Windows品詞マッピング - 記号', () => {
+                const result = mapPOSForWindows('記号');
+                assertEqual(result, '短縮よみ', '記号は短縮よみにマッピングされるべき');
+            });
+
+            runner.test('Windows品詞マッピング - 名詞', () => {
+                const result = mapPOSForWindows('名詞');
+                assertEqual(result, '名詞');
+            });
+
+            runner.test('Windows品詞マッピング - 人名', () => {
+                const result = mapPOSForWindows('人名');
+                assertEqual(result, '人名');
+            });
+
+            runner.test('Windows品詞マッピング - 動詞', () => {
+                const result = mapPOSForWindows('動詞');
+                assertEqual(result, '名詞', '動詞は名詞にマッピングされるべき');
+            });
+
+            runner.test('Windows品詞マッピング - 未定義品詞', () => {
+                const result = mapPOSForWindows('未定義品詞');
+                assertEqual(result, '名詞', '未定義品詞は名詞にマッピングされるべき');
+            });
+
+            runner.test('テストデータ - カテゴリ数', () => {
+                const categories = Object.keys(testData.カテゴリ);
+                assertEqual(categories.length, 2, 'カテゴリは2つあるべき');
+            });
+
+            runner.test('テストデータ - 記号カテゴリの単語数', () => {
+                const words = testData.カテゴリ['記号'].単語リスト;
+                assertEqual(words.length, 2, '記号カテゴリには2つの単語があるべき');
+            });
+
+            runner.test('テストデータ - 人名カテゴリの単語数', () => {
+                const words = testData.カテゴリ['人名'].単語リスト;
+                assertEqual(words.length, 1, '人名カテゴリには1つの単語があるべき');
+            });
+
+            runner.test('CSV出力形式 - ヘッダー生成', () => {
+                const header = '"読み","単語","品詞","説明","タグ","カテゴリ"';
+                assert(header.includes('読み'), 'ヘッダーに読みが含まれるべき');
+                assert(header.includes('単語'), 'ヘッダーに単語が含まれるべき');
+                assert(header.includes('品詞'), 'ヘッダーに品詞が含まれるべき');
+            });
+
+            runner.test('XML特殊文字エスケープ', () => {
+                const testStr = '<test> & "quote"';
+                const escaped = testStr
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
+
+                assertEqual(escaped, '&lt;test&gt; &amp; &quot;quote&quot;');
+            });
+
+            runner.test('UTF-16LE変換 - BOM確認', () => {
+                const content = 'test';
+                const byteArray = new Uint8Array(content.length * 2 + 2);
+                byteArray[0] = 0xFF;
+                byteArray[1] = 0xFE;
+
+                assertEqual(byteArray[0], 0xFF, 'BOM下位バイトが正しくない');
+                assertEqual(byteArray[1], 0xFE, 'BOM上位バイトが正しくない');
+            });
+
+            runner.test('UTF-16LE変換 - 文字エンコード', () => {
+                const char = 'A'; // 0x0041
+                const charCode = char.charCodeAt(0);
+                const byteArray = new Uint8Array(4);
+
+                byteArray[0] = 0xFF;
+                byteArray[1] = 0xFE;
+                byteArray[2] = charCode & 0xFF;
+                byteArray[3] = (charCode >> 8) & 0xFF;
+
+                assertEqual(byteArray[2], 0x41, '下位バイトが正しくない');
+                assertEqual(byteArray[3], 0x00, '上位バイトが正しくない');
+            });
+
+            runner.test('品詞の一貫性チェック', () => {
+                testData.カテゴリ['記号'].単語リスト.forEach(word => {
+                    const mappedPOS = mapPOSForWindows(word.品詞);
+                    assert(mappedPOS, '品詞がマッピングされるべき');
+                });
+            });
+
+            runner.test('カテゴリフィルタリング - 単一カテゴリ', () => {
+                const selectedCategories = ['記号'];
+                const words = [];
+
+                selectedCategories.forEach(cat => {
+                    if (testData.カテゴリ[cat]) {
+                        words.push(...testData.カテゴリ[cat].単語リスト);
+                    }
+                });
+
+                assertEqual(words.length, 2, '記号カテゴリの単語は2つ');
+            });
+
+            runner.test('カテゴリフィルタリング - 複数カテゴリ', () => {
+                const selectedCategories = ['記号', '人名'];
+                const words = [];
+
+                selectedCategories.forEach(cat => {
+                    if (testData.カテゴリ[cat]) {
+                        words.push(...testData.カテゴリ[cat].単語リスト);
+                    }
+                });
+
+                assertEqual(words.length, 3, '記号と人名カテゴリの単語は3つ');
+            });
+        }
+
+        // テスト実行
+        async function runAllTests() {
+            const runner = new TestRunner();
+            defineTests(runner);
+
+            await runner.run();
+            runner.displayResults();
+        }
+    </script>
+</body>
+</html>

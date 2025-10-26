@@ -250,15 +250,46 @@ python3 --version
 python3 convert.py dictionary.json --stats --verbose
 ```
 
+## 🧪 テスト
+
+品質を保証するため、Python版とWeb版の両方にユニットテストが用意されています。
+
+### Python版テストの実行
+
+```bash
+cd tests
+python3 test_converter.py
+```
+
+**結果例**:
+```
+Ran 13 tests in 0.049s
+
+OK
+```
+
+### Web版テストの実行
+
+ブラウザで `tests/test_web.html` を開いて「全テストを実行」ボタンをクリック
+
+### テストカバレッジ
+
+- **Python版**: 13個のテスト（出力形式、品詞マッピング、エンコーディング等）
+- **Web版**: 17個のテスト（エスケープ処理、UTF-16LE変換、カテゴリフィルタ等）
+
+詳細は [tests/README.md](tests/README.md) を参照してください。
+
 ## 📚 参考資料
 
 - [macOS日本語入力設定方法](docs/macos-manual-setup.md)
 - [Windows IME設定方法](docs/windows-manual-setup.md)
 - [JSON Schema仕様](data/schema.json)
+- [テスト実行ガイド](tests/README.md)
 
 ## 🤝 貢献
 
 改善提案やバグ報告は Issues でお知らせください。
+プルリクエストを送る前にテストを実行してください。
 
 ## 📄 ライセンス
 

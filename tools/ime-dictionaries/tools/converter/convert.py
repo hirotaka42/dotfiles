@@ -172,7 +172,7 @@ class DictionaryConverter:
     def to_macos(self, output_file, categories=None):
         """macOS日本語入力用形式で出力（.plist形式）"""
         # 拡張子に応じて処理を振り分け
-        if output_file.endswith('.plist'):
+        if str(output_file).endswith('.plist'):
             self.to_macos_plist(output_file, categories)
         else:
             # 従来のテキスト形式（互換性のため残す）
