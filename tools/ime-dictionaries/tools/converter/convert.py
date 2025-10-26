@@ -203,6 +203,24 @@ class DictionaryConverter:
             if categories:
                 print(f"   対象カテゴリ: {', '.join(categories)}")
 
+    def _map_pos_for_windows(self, pos):
+        """品詞をWindows IME用にマッピング"""
+        # Windows IMEで使用可能な品詞
+        windows_pos_map = {
+            '記号': '短縮よみ',
+            '名詞': '名詞',
+            '動詞': '名詞',  # Windows IMEでは動詞は使えないので名詞に
+            '形容詞': '名詞',  # Windows IMEでは形容詞は使えないので名詞に
+            '副詞': '名詞',  # Windows IMEでは副詞は使えないので名詞に
+            '人名': '人名',
+            '地名': '地名',
+            '固有名詞': '名詞',
+            '短縮よみ': '短縮よみ',
+            '顔文字': '顔文字',
+            'サ変名詞': 'サ変名詞'
+        }
+        return windows_pos_map.get(pos, '名詞')
+
     def to_windows(self, output_file, categories=None):
         """Windows IME用形式で出力"""
         words = self._get_all_words(categories)
@@ -211,7 +229,8 @@ class DictionaryConverter:
             print("⚠️  出力する単語がありません")
             return
 
-        with open(output_file, 'w', encoding='utf-16le') as f:
+        # BOM付きUTF-16LE（encoding='utf-16'を使うと自動でBOMが付く）
+        with open(output_file, 'w', encoding='utf-16') as f:
             # Windows IMEヘッダー
             f.write("!Microsoft IME Dictionary Tool\n")
             f.write("!Version=10.0\n")
@@ -221,7 +240,12 @@ class DictionaryConverter:
 
             # データ
             for word in words:
-                f.write(f"{word.get('読み', '')}\t{word.get('単語', '')}\t{word.get('品詞', '名詞')}\t{word.get('説明', '')}\n")
+                pos = self._map_pos_for_windows(word.get('品詞', '名詞'))
+                reading = word.get('読み', '')
+                text = word.get('単語', '')
+                comment = word.get('説明', '')
+
+                f.write(f"{reading}\t{text}\t{pos}\t{comment}\n")
 
         print(f"✅ Windows形式出力完了: {output_file} ({len(words)}件)")
         if categories:

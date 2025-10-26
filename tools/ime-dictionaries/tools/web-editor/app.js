@@ -497,6 +497,24 @@ function exportToMacOS() {
     showNotification(`🍎 macOS用plist形式で出力しました (${selectedCategories.length}カテゴリ, ${data.length}件)`, 'success');
 }
 
+// Windows IME用品詞マッピング
+function mapPOSForWindows(pos) {
+    const windowsPOSMap = {
+        '記号': '短縮よみ',
+        '名詞': '名詞',
+        '動詞': '名詞',
+        '形容詞': '名詞',
+        '副詞': '名詞',
+        '人名': '人名',
+        '地名': '地名',
+        '固有名詞': '名詞',
+        '短縮よみ': '短縮よみ',
+        '顔文字': '顔文字',
+        'サ変名詞': 'サ変名詞'
+    };
+    return windowsPOSMap[pos] || '名詞';
+}
+
 function exportToWindows() {
     const selectedCategories = getSelectedCategories();
     if (selectedCategories.length === 0) {
@@ -517,10 +535,17 @@ function exportToWindows() {
         '!Format=<Reading>\t<Word>\t<POS>\t<Comment>',
         `!Categories: ${selectedCategories.join(', ')}`,
         '',
-        ...data.map(word => `${word.読み}\t${word.単語}\t${word.品詞 || '名詞'}\t${word.説明 || ''}`)
+        ...data.map(word => {
+            const pos = mapPOSForWindows(word.品詞 || '名詞');
+            return `${word.読み}\t${word.単語}\t${pos}\t${word.説明 || ''}`;
+        })
     ].join('\n');
 
-    downloadFile(windowsContent, 'dictionary_windows.txt', 'text/plain');
+    // UTF-16LE BOM を追加
+    const bom = '\uFEFF';
+    const content = bom + windowsContent;
+
+    downloadFile(content, 'dictionary_windows.txt', 'text/plain;charset=UTF-16LE');
     showNotification(`🪟 Windows形式で出力しました (${selectedCategories.length}カテゴリ, ${data.length}件)`, 'success');
 }
 
