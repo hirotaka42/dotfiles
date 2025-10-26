@@ -1,7 +1,7 @@
 # Windows IME 辞書設定マニュアル
 
 ## 概要
-WindowsでMicrosoft IME辞書を手動で設定する手順について説明します。
+WindowsでMicrosoft IME辞書を設定する手順について説明します。
 
 ## 対応バージョン
 - Windows 10 (バージョン 2004以降)
@@ -10,32 +10,27 @@ WindowsでMicrosoft IME辞書を手動で設定する手順について説明し
 
 ## 前提条件
 - 日本語キーボード/入力方式が設定済み
-- PowerShell実行権限がある
-- 辞書ファイルが準備済み
+- 辞書ファイル（UTF-16LE形式の.txt）が準備済み
 
-## 自動セットアップの実行
+## 辞書ファイルの準備
 
-### PowerShell実行ポリシーの設定
-管理者権限でPowerShellを開き、以下を実行：
+### Web編集ツールを使用する場合
+1. Web編集ツールでJSONファイルを読み込み
+2. 必要なカテゴリを選択
+3. 「Windows形式で出力」ボタンをクリック
+4. `dictionary_windows.txt` ファイルをダウンロード
 
-```powershell
-Set-ExecutionPolicy RemoteSigned
+### コマンドラインツールを使用する場合
+```bash
+cd tools/converter
+# 全カテゴリをWindows形式で出力
+python3 convert.py ../../data/dictionary.json --windows dictionary_windows.txt
+
+# 特定カテゴリのみを出力
+python3 convert.py ../../data/dictionary.json --windows dictionary_windows.txt --categories "記号・マーク,矢印"
 ```
 
-### セットアップスクリプトの実行
-```powershell
-cd C:\path\to\dotfiles
-.\scripts\windows\Setup-Dictionaries.ps1
-```
-
-### オプション付きで実行
-```powershell
-# 処理内容の確認のみ（実際には変更しない）
-.\scripts\windows\Setup-Dictionaries.ps1 -WhatIf
-
-# バックアップなしで実行
-.\scripts\windows\Setup-Dictionaries.ps1 -Backup:$false
-```
+**重要**: 出力ファイルはUTF-16LE（BOM付き）形式である必要があります。
 
 ## 手動での辞書インポート手順
 

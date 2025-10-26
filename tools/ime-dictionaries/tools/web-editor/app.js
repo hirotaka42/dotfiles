@@ -541,11 +541,8 @@ function exportToWindows() {
         })
     ].join('\n');
 
-    // UTF-16LE BOM を追加
-    const bom = '\uFEFF';
-    const content = bom + windowsContent;
-
-    downloadFile(content, 'dictionary_windows.txt', 'text/plain;charset=UTF-16LE');
+    // UTF-16LE形式でダウンロード（BOMは関数内で追加される）
+    downloadFileUTF16LE(windowsContent, 'dictionary_windows.txt');
     showNotification(`🪟 Windows形式で出力しました (${selectedCategories.length}カテゴリ, ${data.length}件)`, 'success');
 }
 
@@ -584,6 +581,30 @@ function getCurrentCategoryData(selectedCategories = null) {
 
 function downloadFile(content, filename, mimeType) {
     const blob = new Blob([content], {type: mimeType + ';charset=utf-8;'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+}
+
+// UTF-16LE形式でファイルをダウンロード（Windows IME用）
+function downloadFileUTF16LE(content, filename) {
+    // 文字列をUTF-16LEバイト配列に変換
+    const byteArray = new Uint8Array(content.length * 2 + 2); // BOM用に+2
+
+    // BOM (0xFF 0xFE) を追加
+    byteArray[0] = 0xFF;
+    byteArray[1] = 0xFE;
+
+    // 各文字をUTF-16LE（リトルエンディアン）に変換
+    for (let i = 0; i < content.length; i++) {
+        const charCode = content.charCodeAt(i);
+        const offset = (i * 2) + 2; // BOMの後から
+        byteArray[offset] = charCode & 0xFF;        // 下位バイト
+        byteArray[offset + 1] = (charCode >> 8) & 0xFF; // 上位バイト
+    }
+
+    const blob = new Blob([byteArray], {type: 'text/plain;charset=UTF-16LE'});
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = filename;
