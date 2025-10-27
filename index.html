@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="個人設定を管理するためのWebツール集 - IME辞書管理ツールなど">
+    <title>dotfiles - 設定管理ツール集</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 60px;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .tool-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+        }
+
+        .tool-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .tool-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .tool-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .tool-features {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+
+        .tool-features li {
+            padding: 8px 0;
+            color: #555;
+            display: flex;
+            align-items: center;
+        }
+
+        .tool-features li::before {
+            content: '✓';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            margin-right: 10px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .tool-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .tool-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .badge-new {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .badge-popular {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .coming-soon {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .coming-soon .tool-link {
+            background: #ccc;
+            box-shadow: none;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            padding: 40px 20px;
+            opacity: 0.9;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px solid white;
+        }
+
+        footer a:hover {
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .tool-card {
+                padding: 20px;
+            }
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            border-radius: 12px;
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔧 dotfiles</h1>
+            <p class="subtitle">個人設定を効率的に管理するためのWebツール集</p>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number">1</span>
+                    <span class="stat-label">ツール</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">17</span>
+                    <span class="stat-label">テスト</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">81%</span>
+                    <span class="stat-label">カバレッジ</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="tools-grid">
+            <!-- IME辞書管理ツール -->
+            <div class="tool-card">
+                <span class="badge badge-new">NEW</span>
+                <div class="tool-icon">📚</div>
+                <h2 class="tool-title">IME辞書管理ツール</h2>
+                <p class="tool-description">
+                    JSON形式で辞書データを一元管理し、Windows IME・macOS日本語入力に対応した形式で出力できるWebツールです。
+                </p>
+                <ul class="tool-features">
+                    <li>複数カテゴリ選択してエクスポート</li>
+                    <li>Windows（UTF-16LE）対応</li>
+                    <li>macOS（.plist）対応</li>
+                    <li>Web上で編集・管理</li>
+                    <li>テストカバレッジ81%</li>
+                </ul>
+                <a href="tools/ime-dictionaries/tools/web-editor/index.html" class="tool-link">
+                    ツールを起動 →
+                </a>
+            </div>
+
+            <!-- シェル設定ツール（準備中） -->
+            <div class="tool-card coming-soon">
+                <span class="badge badge-popular">準備中</span>
+                <div class="tool-icon">🖥️</div>
+                <h2 class="tool-title">シェル設定ツール</h2>
+                <p class="tool-description">
+                    zsh、bashの設定ファイルを管理し、複数環境で同期できるツールです。
+                </p>
+                <ul class="tool-features">
+                    <li>エイリアス管理</li>
+                    <li>環境変数設定</li>
+                    <li>プラグイン管理</li>
+                    <li>プロンプトカスタマイズ</li>
+                </ul>
+                <a href="#" class="tool-link">
+                    準備中
+                </a>
+            </div>
+
+            <!-- Git設定ツール（準備中） -->
+            <div class="tool-card coming-soon">
+                <span class="badge badge-popular">準備中</span>
+                <div class="tool-icon">🔀</div>
+                <h2 class="tool-title">Git設定ツール</h2>
+                <p class="tool-description">
+                    Git設定（.gitconfig）を管理し、コミットテンプレートやエイリアスを簡単に設定できます。
+                </p>
+                <ul class="tool-features">
+                    <li>ユーザー情報設定</li>
+                    <li>エイリアス管理</li>
+                    <li>コミットテンプレート</li>
+                    <li>差分ツール設定</li>
+                </ul>
+                <a href="#" class="tool-link">
+                    準備中
+                </a>
+            </div>
+        </div>
+
+        <footer>
+            <p>
+                このツール集は<a href="https://github.com/hirotaka42/dotfiles" target="_blank">GitHub</a>で公開されています
+            </p>
+            <p style="margin-top: 10px; font-size: 0.9rem;">
+                © 2025 dotfiles Project
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

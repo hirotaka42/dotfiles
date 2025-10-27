@@ -2,6 +2,16 @@
 
 複数端末間で個人設定を簡単に同期・管理するためのdotfilesリポジトリです。
 
+## 🌐 Webツール
+
+ブラウザから直接使えるWebツールを公開しています！
+
+**🔗 [Webツールを使う](https://hirotaka42.github.io/dotfiles/)**
+
+- 📚 [IME辞書管理ツール](https://hirotaka42.github.io/dotfiles/tools/ime-dictionaries/tools/web-editor/index.html) - JSON辞書の編集・エクスポート
+
+> **Note**: GitHub Pagesで公開されています。インストール不要でブラウザから直接利用できます。
+
 ## 🎯 コンセプト
 
 - **カテゴリ別管理**: 設定とツールを明確に分離
