@@ -12,6 +12,17 @@ let dictionaryData = {
 let currentCategory = null;
 let editingWordIndex = -1;
 
+// 辞書データを読み込む共通関数
+function loadDictionary(jsonData) {
+    try {
+        dictionaryData = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+        updateUI();
+        showNotification('✅ ファイルを読み込みました', 'success');
+    } catch (error) {
+        showNotification('❌ ファイルの読み込みに失敗しました: ' + error.message, 'error');
+    }
+}
+
 // ファイル読み込み処理
 document.getElementById('fileInput').addEventListener('change', function(event) {
     const file = event.target.files[0];
@@ -19,13 +30,7 @@ document.getElementById('fileInput').addEventListener('change', function(event) 
 
     const reader = new FileReader();
     reader.onload = function(e) {
-        try {
-            dictionaryData = JSON.parse(e.target.result);
-            updateUI();
-            showNotification('✅ ファイルを読み込みました', 'success');
-        } catch (error) {
-            showNotification('❌ ファイルの読み込みに失敗しました: ' + error.message, 'error');
-        }
+        loadDictionary(e.target.result);
     };
     reader.readAsText(file);
 });
@@ -618,8 +623,26 @@ document.addEventListener('click', function(event) {
     }
 });
 
+// デフォルトのJSONファイルを読み込む
+async function loadDefaultDictionary() {
+    try {
+        const response = await fetch('../../data/dictionary.json');
+        if (!response.ok) {
+            throw new Error('デフォルトファイルが見つかりません');
+        }
+        const jsonData = await response.json();
+        dictionaryData = jsonData;
+        updateUI();
+        showNotification('📚 IME辞書管理ツールを開始しました（デフォルトデータ読み込み済み）', 'success');
+    } catch (error) {
+        // デフォルトファイルが見つからない場合は空の辞書で起動
+        console.warn('デフォルトファイルの読み込みに失敗:', error);
+        updateUI();
+        showNotification('📚 IME辞書管理ツールを開始しました（新規辞書）', 'success');
+    }
+}
+
 // 初期化
 document.addEventListener('DOMContentLoaded', function() {
-    updateUI();
-    showNotification('📚 IME辞書管理ツールを開始しました', 'success');
+    loadDefaultDictionary();
 });
