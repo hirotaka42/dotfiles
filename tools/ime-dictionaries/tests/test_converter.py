@@ -44,8 +44,8 @@ class TestDictionaryConverter(unittest.TestCase):
     def test_get_all_words(self):
         """全単語取得のテスト"""
         words = self.converter._get_all_words()
-        # 有効なカテゴリのみ取得（記号2件 + 人名1件 = 3件）
-        self.assertEqual(len(words), 3)
+        # 有効なカテゴリのみ取得（記号2件 + 人名1件 + 定型文2件 = 5件）
+        self.assertEqual(len(words), 5)
         # 無効なカテゴリは含まれない
         self.assertNotIn('無効', [w.get('単語') for w in words])
 
@@ -70,11 +70,11 @@ class TestDictionaryConverter(unittest.TestCase):
             reader = csv.reader(f)
             rows = list(reader)
 
-        # ヘッダー行を含めて4行（ヘッダー + データ3件）
-        self.assertEqual(len(rows), 4)
+        # ヘッダー行を含めて6行（ヘッダー + データ5件）
+        self.assertEqual(len(rows), 6)
 
-        # ヘッダーの確認
-        self.assertEqual(rows[0], ['読み', '単語', '品詞', '説明', 'タグ', 'カテゴリ'])
+        # ヘッダーの確認（読み_Windows列が追加されている）
+        self.assertEqual(rows[0], ['読み', '読み_Windows', '単語', '品詞', '説明', 'タグ', 'カテゴリ'])
 
         # データ行の確認
         self.assertIn('みぎや', [row[0] for row in rows[1:]])
@@ -158,7 +158,7 @@ class TestDictionaryConverter(unittest.TestCase):
 
         # dict要素（単語エントリ）の確認
         dicts = array.findall('dict')
-        self.assertEqual(len(dicts), 3, 'エントリ数が正しくありません')
+        self.assertEqual(len(dicts), 5, 'エントリ数が正しくありません')
 
         # 最初のエントリの構造確認
         first_dict = dicts[0]
@@ -204,7 +204,7 @@ class TestDictionaryConverter(unittest.TestCase):
 
         # 全てのデータが'記号'カテゴリ
         for row in rows[1:]:  # ヘッダーをスキップ
-            self.assertEqual(row[5], '記号')  # カテゴリ列
+            self.assertEqual(row[6], '記号')  # カテゴリ列（読み_Windows追加で1つずれた）
 
     def test_multiple_categories_filter(self):
         """複数カテゴリフィルタのテスト"""
@@ -219,7 +219,7 @@ class TestDictionaryConverter(unittest.TestCase):
         self.assertEqual(len(rows), 4)
 
         # カテゴリが'記号'または'人名'
-        categories = [row[5] for row in rows[1:]]
+        categories = [row[6] for row in rows[1:]]  # 読み_Windows追加で1つずれた
         for cat in categories:
             self.assertIn(cat, ['記号', '人名'])
 
@@ -237,11 +237,62 @@ class TestDictionaryConverter(unittest.TestCase):
         try:
             categories = self.converter.list_categories()
             self.assertIsInstance(categories, list)
-            self.assertEqual(len(categories), 3)  # 記号、人名、無効カテゴリ
+            self.assertEqual(len(categories), 4)  # 記号、人名、定型文、無効カテゴリ
             self.assertIn('記号', categories)
             self.assertIn('人名', categories)
+            self.assertIn('定型文', categories)
         except Exception as e:
             self.fail(f"list_categories()でエラーが発生: {e}")
+
+    def test_windows_reading_priority(self):
+        """Windows用読みの優先使用テスト"""
+        output_file = Path(self.temp_dir) / 'test_windows_priority.txt'
+        self.converter.to_windows(output_file)
+
+        # ファイルが作成されているか
+        self.assertTrue(output_file.exists())
+
+        # UTF-16で読み込み
+        with open(output_file, 'r', encoding='utf-16') as f:
+            content = f.read()
+
+        # Windows用読みが優先的に使用されているか確認
+        # "mem" は "めも" に変換されているはず
+        self.assertIn('めも\t', content)
+        self.assertNotIn('mem\t', content)
+
+        # "meko" は "めーこ" に変換されているはず
+        self.assertIn('めーこ\t', content)
+        self.assertNotIn('meko\t', content)
+
+        # Windows用読みがない通常の単語（ひらがな）はそのまま
+        self.assertIn('みぎや\t', content)
+
+    def test_macos_plist_uses_standard_reading(self):
+        """macOS plist出力では通常の読みを使用することを確認"""
+        output_file = Path(self.temp_dir) / 'test_macos_reading.plist'
+        self.converter.to_macos_plist(output_file)
+
+        # ファイルが作成されているか
+        self.assertTrue(output_file.exists())
+
+        # XMLとしてパース
+        tree = ET.parse(output_file)
+        root = tree.getroot()
+
+        # shortcut（読み）の値を取得
+        shortcuts = []
+        array = root.find('array')
+        for dict_elem in array.findall('dict'):
+            keys = dict_elem.findall('key')
+            strings = dict_elem.findall('string')
+            for i, key in enumerate(keys):
+                if key.text == 'shortcut':
+                    shortcuts.append(strings[i].text)
+
+        # macOSでは通常の読みが使用される
+        self.assertIn('mem', shortcuts)  # Windows用読みではなく、通常の読み
+        self.assertIn('meko', shortcuts)
 
     def test_macos_txt_output(self):
         """macOS TXT形式出力のテスト（.plist以外）"""

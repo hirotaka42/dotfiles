@@ -73,13 +73,14 @@ class DictionaryConverter:
             writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
 
             # ヘッダー
-            writer.writerow(['読み', '単語', '品詞', '説明', 'タグ', 'カテゴリ'])
+            writer.writerow(['読み', '読み_Windows', '単語', '品詞', '説明', 'タグ', 'カテゴリ'])
 
             # データ
             for word in words:
                 tags = ';'.join(word.get('タグ', []))
                 writer.writerow([
                     word.get('読み', ''),
+                    word.get('読み_Windows', ''),
                     word.get('単語', ''),
                     word.get('品詞', '名詞'),
                     word.get('説明', ''),
@@ -241,7 +242,8 @@ class DictionaryConverter:
             # データ
             for word in words:
                 pos = self._map_pos_for_windows(word.get('品詞', '名詞'))
-                reading = word.get('読み', '')
+                # Windows用読みが設定されていればそれを使用、なければ通常の読みを使用
+                reading = word.get('読み_Windows') or word.get('読み', '')
                 text = word.get('単語', '')
                 comment = word.get('説明', '')
 

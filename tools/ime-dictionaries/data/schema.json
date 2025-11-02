@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "IME辞書管理スキーマ",
-  "description": "個人用IME辞書データの管理形式",
+  "description": "個人用IME辞書データの管理形式（Windows/macOS対応）",
   "type": "object",
   "properties": {
     "辞書情報": {
@@ -25,7 +25,14 @@
               "items": {
                 "type": "object",
                 "properties": {
-                  "読み": {"type": "string"},
+                  "読み": {
+                    "type": "string",
+                    "description": "macOS用の読み（メイン）"
+                  },
+                  "読み_Windows": {
+                    "type": "string",
+                    "description": "Windows IME用の読み（オプション）。半角英語のみの場合は推奨。"
+                  },
                   "単語": {"type": "string"},
                   "品詞": {"type": "string", "default": "名詞"},
                   "説明": {"type": "string"},

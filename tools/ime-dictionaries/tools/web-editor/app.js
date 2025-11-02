@@ -113,10 +113,13 @@ function updateWordList() {
         div.className = 'word-item';
 
         const tags = word.タグ ? word.タグ.join(', ') : '';
+        const readingDisplay = word.読み_Windows
+            ? `${word.読み} <span style="color: #3498db; font-size: 11px;">(Win: ${word.読み_Windows})</span>`
+            : word.読み;
 
         div.innerHTML = `
             <div>
-                <div class="word-reading">${word.読み}</div>
+                <div class="word-reading">${readingDisplay}</div>
                 <div class="word-meta">${word.品詞 || '名詞'}</div>
             </div>
             <div>
@@ -197,11 +200,24 @@ function openAddWordModal() {
     updateCategoryOptions();
     document.getElementById('wordCategory').value = currentCategory || Object.keys(dictionaryData.カテゴリ)[0];
     editingWordIndex = -1;
+
+    // 警告divを非表示にリセット
+    const warningDiv = document.getElementById('windowsReadingWarning');
+    if (warningDiv) {
+        warningDiv.style.display = 'none';
+    }
+
     document.getElementById('wordModal').style.display = 'block';
 }
 
 function closeWordModal() {
     document.getElementById('wordModal').style.display = 'none';
+
+    // 警告divをリセット
+    const warningDiv = document.getElementById('windowsReadingWarning');
+    if (warningDiv) {
+        warningDiv.style.display = 'none';
+    }
 }
 
 // 単語編集
@@ -212,6 +228,7 @@ function editWord(index) {
 
     document.getElementById('wordModalTitle').textContent = '単語を編集';
     document.getElementById('wordReading').value = word.読み;
+    document.getElementById('wordReadingWindows').value = word.読み_Windows || '';
     document.getElementById('wordText').value = word.単語;
     document.getElementById('wordPOS').value = word.品詞 || '名詞';
     document.getElementById('wordDescription').value = word.説明 || '';
@@ -221,6 +238,13 @@ function editWord(index) {
     document.getElementById('wordCategory').value = currentCategory;
 
     editingWordIndex = index;
+
+    // 警告divを非表示にリセット（編集モードではチェックしない）
+    const warningDiv = document.getElementById('windowsReadingWarning');
+    if (warningDiv) {
+        warningDiv.style.display = 'none';
+    }
+
     document.getElementById('wordModal').style.display = 'block';
 }
 
@@ -235,11 +259,17 @@ function deleteWord(index) {
     }
 }
 
+// 半角英数字のみかチェックする関数
+function isHalfWidthAlphanumeric(str) {
+    return /^[a-zA-Z0-9\s\-_]+$/.test(str);
+}
+
 // 単語フォーム送信
 document.getElementById('wordForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
     const reading = document.getElementById('wordReading').value.trim();
+    const readingWindows = document.getElementById('wordReadingWindows').value.trim();
     const word = document.getElementById('wordText').value.trim();
     const pos = document.getElementById('wordPOS').value;
     const description = document.getElementById('wordDescription').value.trim();
@@ -248,6 +278,13 @@ document.getElementById('wordForm').addEventListener('submit', function(e) {
 
     if (!reading || !word) {
         showNotification('⚠️ 読みと単語は必須です', 'error');
+        return;
+    }
+
+    // 半角英数字のみの場合、Windows用読みが必須
+    if (isHalfWidthAlphanumeric(reading) && !readingWindows) {
+        showNotification('⚠️ 読みが半角英語のみの場合、Windows用の読みを入力してください', 'error');
+        document.getElementById('windowsReadingWarning').style.display = 'block';
         return;
     }
 
@@ -260,6 +297,11 @@ document.getElementById('wordForm').addEventListener('submit', function(e) {
         説明: description,
         タグ: tags
     };
+
+    // Windows用読みが入力されている場合のみ追加
+    if (readingWindows) {
+        wordData.読み_Windows = readingWindows;
+    }
 
     if (!dictionaryData.カテゴリ[categoryKey].単語リスト) {
         dictionaryData.カテゴリ[categoryKey].単語リスト = [];
@@ -410,13 +452,14 @@ function exportToCSV() {
     }
 
     // CSVヘッダー行
-    const header = '"読み","単語","品詞","説明","タグ","カテゴリ"';
+    const header = '"読み","読み_Windows","単語","品詞","説明","タグ","カテゴリ"';
 
     // データ行
     const rows = data.map(word => {
         const tags = word.タグ ? word.タグ.join(';') : '';
         return [
             escapeCSVField(word.読み),
+            escapeCSVField(word.読み_Windows || ''),
             escapeCSVField(word.単語),
             escapeCSVField(word.品詞 || '名詞'),
             escapeCSVField(word.説明 || ''),
@@ -542,7 +585,9 @@ function exportToWindows() {
         '',
         ...data.map(word => {
             const pos = mapPOSForWindows(word.品詞 || '名詞');
-            return `${word.読み}\t${word.単語}\t${pos}\t${word.説明 || ''}`;
+            // Windows用読みが設定されていればそれを使用、なければ通常の読みを使用
+            const reading = word.読み_Windows || word.読み;
+            return `${reading}\t${word.単語}\t${pos}\t${word.説明 || ''}`;
         })
     ].join('\n');
 
@@ -645,4 +690,33 @@ async function loadDefaultDictionary() {
 // 初期化
 document.addEventListener('DOMContentLoaded', function() {
     loadDefaultDictionary();
+
+    // 読みフィールドの変更を監視してバリデーション警告を表示
+    const wordReadingInput = document.getElementById('wordReading');
+    const wordReadingWindowsInput = document.getElementById('wordReadingWindows');
+    const warningDiv = document.getElementById('windowsReadingWarning');
+
+    if (wordReadingInput && wordReadingWindowsInput && warningDiv) {
+        wordReadingInput.addEventListener('input', function() {
+            const reading = this.value.trim();
+            const readingWindows = wordReadingWindowsInput.value.trim();
+
+            if (reading && isHalfWidthAlphanumeric(reading) && !readingWindows) {
+                warningDiv.style.display = 'block';
+            } else {
+                warningDiv.style.display = 'none';
+            }
+        });
+
+        wordReadingWindowsInput.addEventListener('input', function() {
+            const reading = wordReadingInput.value.trim();
+            const readingWindows = this.value.trim();
+
+            if (reading && isHalfWidthAlphanumeric(reading) && !readingWindows) {
+                warningDiv.style.display = 'block';
+            } else {
+                warningDiv.style.display = 'none';
+            }
+        });
+    }
 });

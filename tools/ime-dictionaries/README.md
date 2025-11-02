@@ -7,6 +7,7 @@
 - **JSON形式での管理**: 人間にも機械にも読みやすい形式
 - **Webエディタ**: ブラウザで直感的に編集
 - **マルチプラットフォーム対応**: macOS・Windows・CSV等に変換
+- **プラットフォーム別読み対応**: Windows/macOS用の読みを個別管理 ⭐ NEW
 - **カテゴリ管理**: 用途別に辞書を分類
 - **シンプル設計**: 個人利用に最適化
 
@@ -110,6 +111,7 @@ python3 convert.py ../../data/dictionary.json --all-formats --output-dir ./outpu
       "単語リスト": [
         {
           "読み": "よみ",
+          "読み_Windows": "よみ（Windows用、オプション）",
           "単語": "変換後の単語",
           "品詞": "名詞",
           "説明": "説明文",
@@ -118,6 +120,24 @@ python3 convert.py ../../data/dictionary.json --all-formats --output-dir ./outpu
       ]
     }
   }
+}
+```
+
+#### プラットフォーム別読み対応 ⭐ NEW
+
+- **`読み`**: macOS用の読み（必須）
+- **`読み_Windows`**: Windows IME用の読み（オプション）
+  - 半角英語のみの読み（例: "mem", "meko"）の場合、Windows IMEでは動作しないため、ひらがなの読みを設定
+  - 設定した場合、Windows出力時に `読み_Windows` が優先使用される
+  - macOS出力時は常に `読み` が使用される
+
+**例：半角英語の読みの場合**
+```json
+{
+  "読み": "mem",
+  "読み_Windows": "めも",
+  "単語": "メモを確認する",
+  "品詞": "名詞"
 }
 ```
 
